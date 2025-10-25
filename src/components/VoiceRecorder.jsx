@@ -1,10 +1,27 @@
-import { Paper, Typography, Box, Button } from '@mui/material'
+import { Paper, Typography, Box, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import React, { useRef } from 'react'
 
-export const VoiceRecorder = () => {
+export const VoiceRecorder = ({ onTranslate }) => {
     const [isRecording, setIsRecording] = React.useState(false);
     const [transcript, setTranscript] = React.useState("");
+    const [inputLanguage, setInputLanguage] = React.useState('en-US');
     const recognitionRef = useRef(null);
+
+    // Supported speech recognition languages
+    const speechLanguages = [
+        { code: 'en-US', name: 'English (US)' },
+        { code: 'es-ES', name: 'Spanish (Spain)' },
+        { code: 'es-MX', name: 'Spanish (Mexico)' },
+        { code: 'fr-FR', name: 'French' },
+        { code: 'de-DE', name: 'German' },
+        { code: 'zh-CN', name: 'Chinese (Mandarin)' },
+        { code: 'ja-JP', name: 'Japanese' },
+        { code: 'hi-IN', name: 'Hindi' },
+        { code: 'ar-SA', name: 'Arabic' },
+        { code: 'ru-RU', name: 'Russian' },
+        { code: 'pt-BR', name: 'Portuguese (Brazil)' },
+        { code: 'pt-PT', name: 'Portuguese (Portugal)' },
+    ];
 
     const startRecord = () => {
         // use the web app speech recognition api to start recording
@@ -18,7 +35,7 @@ export const VoiceRecorder = () => {
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
         recognitionRef.current.interimResults = true;
-        recognitionRef.current.lang = 'en-US';
+        recognitionRef.current.lang = inputLanguage;
 
         recognitionRef.current.onresult = (event) => {
             console.log(event);
@@ -57,13 +74,38 @@ export const VoiceRecorder = () => {
         }
     }
 
-
+    const handleTranslate = () => {
+        // Pass both transcript and selected language to parent
+        if (transcript && onTranslate) {
+            onTranslate(transcript, inputLanguage);
+        }
+    }
 
     return (
         <Paper elevation={3} sx={{ padding: '20px', textAlign: 'center', marginTop: '0px' }}>
             <Typography variant="h6">
                 Input Voice
             </Typography>
+
+            <Box mt={2}>
+                <FormControl fullWidth sx={{ marginBottom: '15px' }}>
+                    <InputLabel id="input-language-label">Voice Input Language</InputLabel>
+                    <Select
+                        labelId="input-language-label"
+                        id="input-language-select"
+                        value={inputLanguage}
+                        label="Voice Input Language"
+                        onChange={(e) => setInputLanguage(e.target.value)}
+                        disabled={isRecording}
+                    >
+                        {speechLanguages.map((lang) => (
+                            <MenuItem key={lang.code} value={lang.code}>
+                                {lang.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+            </Box>
 
             <Box mt={2}>
                 <Button variant="contained" color="primary"
@@ -79,7 +121,7 @@ export const VoiceRecorder = () => {
                 </Button>
             </Box>
 
-            
+
             {transcript && (
                 <Box mt={3} sx={{
                     padding: '15px',
@@ -94,10 +136,19 @@ export const VoiceRecorder = () => {
                         {transcript}
                     </Typography>
 
-                    <Button variant="outlined" color="secondary" style={{ marginTop: '10px' }}
-                        onClick={() => setTranscript("")}>
-                        Clear Transcript
-                    </Button>
+                    <Box mt={2}>
+                        <Button variant="contained" color="success"
+                            onClick={handleTranslate}
+                            style={{ marginRight: '10px' }}>
+                            🌐 Translate
+                        </Button>
+
+                        <Button variant="outlined" color="secondary"
+                            onClick={() => setTranscript("")}>
+                            Clear Transcript
+                        </Button>
+                    </Box>
+
                 </Box>
             )}
 
