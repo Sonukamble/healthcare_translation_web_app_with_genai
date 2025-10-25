@@ -16,9 +16,9 @@ function App() {
 
   return (
     <Container maxWidth="md" sx={{ marginTop: '40px' }}>
-      {/* <Typography variant="h3" component="h1" gutterBottom>
+      <Typography variant="h4" component="h4" gutterBottom>
         Healthcare Translation app
-      </Typography> */}
+      </Typography>
       <VoiceRecorder onTranslate={handleTranslate} />
       {transcript && (
         <Translater inputText={transcript} sourceLanguageCode={sourceLanguage} />
