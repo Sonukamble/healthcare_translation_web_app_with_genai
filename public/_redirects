@@ -1,3 +1,3 @@
-# Redirect all traffic to index.html for client-side routing
+# SPA routing - redirect all non-existing paths to index.html
+# Netlify functions (/.netlify/functions/*) are automatically excluded
 /*    /index.html   200
-

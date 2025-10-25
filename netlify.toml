@@ -3,11 +3,17 @@
   publish = "dist"
   functions = "netlify/functions"
 
-# Redirect all requests to index.html for SPA routing
+[functions]
+  # Ensure functions have access to all dependencies
+  node_bundler = "esbuild"
+  included_files = ["node_modules/**"]
+
+# Redirect all requests to index.html for SPA routing (except functions and static files)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = false
 
 # Environment variables configuration
 [build.environment]

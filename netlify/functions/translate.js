@@ -1,9 +1,20 @@
 import OpenAI from "openai";
 
-// Initialize OpenAI client with server-side API key
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY // No VITE_ prefix - this stays server-side
-});
+// Initialize OpenAI client lazily to avoid errors on module load
+let openai = null;
+
+const getOpenAIClient = () => {
+    if (!openai) {
+        const apiKey = process.env.OPENAI_API_KEY;
+        if (!apiKey) {
+            throw new Error('OPENAI_API_KEY environment variable is not set');
+        }
+        openai = new OpenAI({
+            apiKey: apiKey
+        });
+    }
+    return openai;
+};
 
 const languages = [
     { code: "en", name: "English" },
@@ -101,8 +112,9 @@ export const handler = async (event) => {
 
         console.log('Translation prompt:', userPrompt);
 
-        // Call OpenAI API
-        const response = await openai.chat.completions.create({
+        // Get OpenAI client and call API
+        const client = getOpenAIClient();
+        const response = await client.chat.completions.create({
             model: "gpt-4o-mini",
             temperature: 0.3,
             messages: [
