@@ -27,12 +27,13 @@ export const translateText = async (text, targetLanguageCode, sourceLanguageCode
             })
         });
 
+        const result = await response.json();
+        
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Translation request failed');
+            console.error('Translation error response:', result);
+            throw new Error(result.error || result.message || 'Translation request failed');
         }
 
-        const result = await response.json();
         return result;
     }
     catch (error) {

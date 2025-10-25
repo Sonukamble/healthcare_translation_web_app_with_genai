@@ -19,15 +19,46 @@ const languages = [
 ];
 
 export const handler = async (event) => {
+    // CORS headers for all responses
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Content-Type': 'application/json',
+    };
+
+    // Handle OPTIONS request for CORS preflight
+    if (event.httpMethod === 'OPTIONS') {
+        return {
+            statusCode: 200,
+            headers,
+            body: '',
+        };
+    }
+
     // Only allow POST requests
     if (event.httpMethod !== 'POST') {
         return {
             statusCode: 405,
+            headers,
             body: JSON.stringify({ error: 'Method Not Allowed' }),
         };
     }
 
     try {
+        // Check if API key is available
+        if (!process.env.OPENAI_API_KEY) {
+            console.error('OPENAI_API_KEY environment variable is not set');
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({ 
+                    success: false,
+                    error: 'Server configuration error: API key not set. Please check Netlify environment variables.' 
+                }),
+            };
+        }
+
         // Parse request body
         const { text, targetLanguageCode, sourceLanguageCode } = JSON.parse(event.body);
 
@@ -35,7 +66,11 @@ export const handler = async (event) => {
         if (!text || !targetLanguageCode) {
             return {
                 statusCode: 400,
-                body: JSON.stringify({ error: 'Missing required fields: text and targetLanguageCode' }),
+                headers,
+                body: JSON.stringify({ 
+                    success: false,
+                    error: 'Missing required fields: text and targetLanguageCode' 
+                }),
             };
         }
 
@@ -43,7 +78,11 @@ export const handler = async (event) => {
         if (!targetLanguage) {
             return {
                 statusCode: 400,
-                body: JSON.stringify({ error: 'Unsupported target language' }),
+                headers,
+                body: JSON.stringify({ 
+                    success: false,
+                    error: 'Unsupported target language' 
+                }),
             };
         }
 
@@ -84,9 +123,7 @@ export const handler = async (event) => {
         // Return success response
         return {
             statusCode: 200,
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify({
                 success: true,
                 translatedText: translatedText.trim(),
@@ -101,12 +138,11 @@ export const handler = async (event) => {
         
         return {
             statusCode: 500,
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify({
                 success: false,
-                message: error.message || 'Translation API error'
+                message: error.message || 'Translation API error',
+                error: error.toString()
             }),
         };
     }
